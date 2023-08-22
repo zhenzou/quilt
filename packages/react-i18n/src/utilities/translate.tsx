@@ -4,17 +4,17 @@ import type {PseudotranslateOptions} from '@shopify/i18n';
 import {pseudotranslate as pseudotranslateString} from '@shopify/i18n';
 
 import type {
-  TranslationDictionary,
   ComplexReplacementDictionary,
   PrimitiveReplacementDictionary,
+  TranslationDictionary,
 } from '../types';
-import {MissingTranslationError, MissingReplacementError} from '../errors';
+import {MissingReplacementError, MissingTranslationError} from '../errors';
 
 import {DEFAULT_FORMAT} from './interpolate';
 
 const MISSING_TRANSLATION = Symbol('Missing translation');
 const CARDINAL_PLURALIZATION_KEY_NAME = 'count';
-const  ORDINAL_PLURALIZATION_KEY_NAME = 'ordinal';
+const ORDINAL_PLURALIZATION_KEY_NAME = 'ordinal';
 const SEPARATOR = '.';
 const UNICODE_NUMBERING_SYSTEM = '-u-nu-';
 const LATIN = 'latn';
@@ -22,6 +22,7 @@ const LATIN = 'latn';
 const isString = (value: any): value is string => typeof value === 'string';
 
 const numberFormats = new Map<string, Intl.NumberFormat>();
+
 export function memoizedNumberFormatter(
   locales?: string | string[],
   options?: Intl.NumberFormatOptions,
@@ -71,7 +72,7 @@ export const PSEUDOTRANSLATE_OPTIONS: PseudotranslateOptions = {
 };
 
 export interface TranslateOptions<Replacements = {}> {
-  rawId?:boolean;
+  rawId?: boolean;
   scope?: string | string[];
   replacements?: Replacements;
   pseudotranslate?: boolean | string;
@@ -151,7 +152,7 @@ export function translate(
   translations: TranslationDictionary | TranslationDictionary[],
   locale: string,
 ): any {
-  const {scope, replacements, pseudotranslate, interpolate} = options;
+  const {scope, replacements, pseudotranslate, interpolate, rawId} = options;
 
   const normalizedTranslations = Array.isArray(translations)
     ? translations
@@ -165,7 +166,7 @@ export function translate(
       translationDictionary,
       locale,
       replacements,
-      {pseudotranslate, interpolate},
+      {pseudotranslate, interpolate, rawId},
     );
 
     if (result !== MISSING_TRANSLATION) {
@@ -178,7 +179,7 @@ export function translate(
 
 type TranslateWithDictionaryOptions = Pick<
   TranslateOptions,
-  'pseudotranslate' | 'interpolate' |'rawId'
+  'pseudotranslate' | 'interpolate' | 'rawId'
 >;
 
 function translateWithDictionary(
@@ -200,13 +201,17 @@ function translateWithDictionary(
   translations: TranslationDictionary,
   locale: string,
   replacements?: PrimitiveReplacementDictionary | ComplexReplacementDictionary,
-  {pseudotranslate = false, interpolate, rawId = false}: TranslateWithDictionaryOptions = {},
+  {
+    pseudotranslate = false,
+    interpolate,
+    rawId = false,
+  }: TranslateWithDictionaryOptions = {},
 ): any {
   let result: string | TranslationDictionary = translations;
 
-  if (rawId){
-      result = result[id];
-  }else{
+  if (rawId) {
+    result = result[id];
+  } else {
     for (const part of id.split(SEPARATOR)) {
       if (result == null || typeof result !== 'object') {
         return MISSING_TRANSLATION;
@@ -214,8 +219,6 @@ function translateWithDictionary(
       result = result[part];
     }
   }
-
-
 
   const additionalReplacements = {};
 
