@@ -14,7 +14,7 @@ import {DEFAULT_FORMAT} from './interpolate';
 
 const MISSING_TRANSLATION = Symbol('Missing translation');
 const CARDINAL_PLURALIZATION_KEY_NAME = 'count';
-const ORDINAL_PLURALIZATION_KEY_NAME = 'ordinal';
+const  ORDINAL_PLURALIZATION_KEY_NAME = 'ordinal';
 const SEPARATOR = '.';
 const UNICODE_NUMBERING_SYSTEM = '-u-nu-';
 const LATIN = 'latn';
@@ -71,6 +71,7 @@ export const PSEUDOTRANSLATE_OPTIONS: PseudotranslateOptions = {
 };
 
 export interface TranslateOptions<Replacements = {}> {
+  rawId?:boolean;
   scope?: string | string[];
   replacements?: Replacements;
   pseudotranslate?: boolean | string;
@@ -177,7 +178,7 @@ export function translate(
 
 type TranslateWithDictionaryOptions = Pick<
   TranslateOptions,
-  'pseudotranslate' | 'interpolate'
+  'pseudotranslate' | 'interpolate' |'rawId'
 >;
 
 function translateWithDictionary(
@@ -199,17 +200,22 @@ function translateWithDictionary(
   translations: TranslationDictionary,
   locale: string,
   replacements?: PrimitiveReplacementDictionary | ComplexReplacementDictionary,
-  {pseudotranslate = false, interpolate}: TranslateWithDictionaryOptions = {},
+  {pseudotranslate = false, interpolate, rawId = false}: TranslateWithDictionaryOptions = {},
 ): any {
   let result: string | TranslationDictionary = translations;
 
-  for (const part of id.split(SEPARATOR)) {
-    if (result == null || typeof result !== 'object') {
-      return MISSING_TRANSLATION;
+  if (rawId){
+      result = result[id];
+  }else{
+    for (const part of id.split(SEPARATOR)) {
+      if (result == null || typeof result !== 'object') {
+        return MISSING_TRANSLATION;
+      }
+      result = result[part];
     }
-
-    result = result[part];
   }
+
+
 
   const additionalReplacements = {};
 

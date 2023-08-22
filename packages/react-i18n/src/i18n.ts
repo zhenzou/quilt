@@ -12,8 +12,8 @@ import {
   isLessThanOneWeekAway,
   isLessThanOneYearAway,
 } from '@shopify/dates';
-import {memoize} from '@shopify/function-enhancers';
-import {languageFromLocale, regionFromLocale} from '@shopify/i18n';
+import { memoize } from '@shopify/function-enhancers';
+import { languageFromLocale, regionFromLocale } from '@shopify/i18n';
 
 import type {
   I18nDetails,
@@ -21,8 +21,8 @@ import type {
   ComplexReplacementDictionary,
   TranslationDictionary,
 } from './types';
-import {LanguageDirection} from './types';
-import type {Weekday} from './constants';
+import { LanguageDirection } from './types';
+import type { Weekday } from './constants';
 import {
   dateStyle,
   DateStyle,
@@ -35,9 +35,9 @@ import {
   CurrencyShortFormException,
   UnicodeCharacterSet,
 } from './constants';
-import type {I18nError} from './errors';
-import {MissingCurrencyCodeError, MissingCountryError} from './errors';
-import type {TranslateOptions as RootTranslateOptions} from './utilities';
+import type { I18nError } from './errors';
+import { MissingCurrencyCodeError, MissingCountryError } from './errors';
+import type { TranslateOptions as RootTranslateOptions } from './utilities';
 import {
   getCurrencySymbol,
   translate,
@@ -59,6 +59,7 @@ export interface CurrencyFormatOptions extends NumberFormatOptions {
 }
 
 export interface TranslateOptions {
+  rawId?: boolean;
   scope: RootTranslateOptions<any>['scope'];
 }
 
@@ -119,7 +120,7 @@ export class I18n {
       onError,
       loading,
       interpolate,
-    }: I18nDetails & {loading?: boolean},
+    }: I18nDetails & { loading?: boolean },
   ) {
     this.locale = locale;
     this.defaultCountry = country;
@@ -159,7 +160,7 @@ export class I18n {
       | PrimitiveReplacementDictionary
       | ComplexReplacementDictionary,
   ): any {
-    const {pseudolocalize, defaultInterpolate} = this;
+    const { pseudolocalize, defaultInterpolate } = this;
     let normalizedOptions: RootTranslateOptions<
       PrimitiveReplacementDictionary | ComplexReplacementDictionary
     >;
@@ -180,6 +181,7 @@ export class I18n {
     } else {
       normalizedOptions = {
         ...defaultOptions,
+        rawId: optionsOrReplacements.rawId,
         replacements: optionsOrReplacements,
       };
     }
@@ -225,9 +227,9 @@ export class I18n {
 
   formatNumber(
     amount: number,
-    {as, precision, ...options}: NumberFormatOptions = {},
+    { as, precision, ...options }: NumberFormatOptions = {},
   ) {
-    const {locale, defaultCurrency: currency} = this;
+    const { locale, defaultCurrency: currency } = this;
 
     if (as === 'currency' && currency == null && options.currency == null) {
       this.onError(
@@ -248,7 +250,7 @@ export class I18n {
   }
 
   unformatNumber(input: string): string {
-    const {decimalSymbol} = this.numberSymbols();
+    const { decimalSymbol } = this.numberSymbols();
 
     const normalizedValue = this.normalizedNumber(input, decimalSymbol);
 
@@ -257,7 +259,7 @@ export class I18n {
 
   formatCurrency(
     amount: number,
-    {form, ...options}: CurrencyFormatOptions = {},
+    { form, ...options }: CurrencyFormatOptions = {},
   ) {
     switch (form) {
       case 'auto':
@@ -274,7 +276,7 @@ export class I18n {
   }
 
   unformatCurrency(input: string, currencyCode: string): string {
-    const {decimalSymbol} = this.numberSymbols();
+    const { decimalSymbol } = this.numberSymbols();
     const decimalPlaces = currencyDecimalPlaces.get(currencyCode.toUpperCase());
 
     const normalizedValue = this.normalizedNumber(
@@ -296,22 +298,22 @@ export class I18n {
   }
 
   formatPercentage(amount: number, options: Intl.NumberFormatOptions = {}) {
-    return this.formatNumber(amount, {as: 'percent', ...options});
+    return this.formatNumber(amount, { as: 'percent', ...options });
   }
 
   formatDate(
     date: Date,
-    options: Intl.DateTimeFormatOptions & {style?: DateStyle} = {},
+    options: Intl.DateTimeFormatOptions & { style?: DateStyle } = {},
   ): string {
-    const {locale, defaultTimezone} = this;
-    const {timeZone = defaultTimezone} = options;
+    const { locale, defaultTimezone } = this;
+    const { timeZone = defaultTimezone } = options;
 
-    const {style = undefined, ...formatOptions} = options || {};
+    const { style = undefined, ...formatOptions } = options || {};
 
     if (style) {
       switch (style) {
         case DateStyle.Humanize:
-          return this.humanizeDate(date, {...formatOptions, timeZone});
+          return this.humanizeDate(date, { ...formatOptions, timeZone });
         case DateStyle.DateTime:
           return this.formatDateTime(date, {
             ...formatOptions,
@@ -319,17 +321,17 @@ export class I18n {
             ...dateStyle[style],
           });
         default:
-          return this.formatDate(date, {...formatOptions, ...dateStyle[style]});
+          return this.formatDate(date, { ...formatOptions, ...dateStyle[style] });
       }
     }
 
-    return formatDate(date, locale, {...formatOptions, timeZone});
+    return formatDate(date, locale, { ...formatOptions, timeZone });
   }
 
   ordinal(amount: number) {
-    const {locale} = this;
-    const group = memoizedPluralRules(locale, {type: 'ordinal'}).select(amount);
-    return this.translate(group, {scope: 'ordinal'}, {amount});
+    const { locale } = this;
+    const group = memoizedPluralRules(locale, { type: 'ordinal' }).select(amount);
+    return this.translate(group, { scope: 'ordinal' }, { amount });
   }
 
   weekStartDay(argCountry?: I18n['defaultCountry']): Weekday {
@@ -364,7 +366,7 @@ export class I18n {
   formatName(
     firstName?: string,
     lastName?: string,
-    options?: {full?: boolean},
+    options?: { full?: boolean },
   ) {
     if (!firstName) {
       return lastName || '';
@@ -399,7 +401,7 @@ export class I18n {
     idealMaxLength?: number;
   }) {
     return (
-      tryAbbreviateName({firstName, lastName, idealMaxLength}) ??
+      tryAbbreviateName({ firstName, lastName, idealMaxLength }) ??
       this.formatName(firstName, lastName)
     );
   }
@@ -429,7 +431,7 @@ export class I18n {
         else thousandSymbol = char;
       }
     }
-    return {thousandSymbol, decimalSymbol};
+    return { thousandSymbol, decimalSymbol };
   });
 
   private formatCurrencyAuto(
@@ -484,7 +486,7 @@ export class I18n {
     amount: number,
     options: NumberFormatOptions = {},
   ): string {
-    const {locale} = this;
+    const { locale } = this;
     let adjustedPrecision = options.precision;
     if (adjustedPrecision === undefined) {
       const currency = options.currency || this.defaultCurrency || '';
@@ -511,7 +513,7 @@ export class I18n {
     locale: string = this.locale,
   ) {
     const regionCode = currency.substring(0, 2);
-    let shortSymbolResult: {symbol: string; prefixed: boolean};
+    let shortSymbolResult: { symbol: string; prefixed: boolean };
 
     // currencyDisplay: 'narrowSymbol' was added to iOS in v14.5. See https://caniuse.com/?search=currencydisplay
     // We still support ios 12/13, so we need to check if this works and fallback to the default if not
@@ -522,7 +524,7 @@ export class I18n {
         currencyDisplay: 'narrowSymbol',
       });
     } catch {
-      shortSymbolResult = getCurrencySymbol(locale, {currency});
+      shortSymbolResult = getCurrencySymbol(locale, { currency });
     }
 
     if (currency in CurrencyShortFormException) {
@@ -537,7 +539,7 @@ export class I18n {
 
     return alphabeticCharacters.exec(shortSymbol)
       ? shortSymbolResult
-      : {symbol: shortSymbol, prefixed: shortSymbolResult.prefixed};
+      : { symbol: shortSymbol, prefixed: shortSymbolResult.prefixed };
   }
 
   private humanizeDate(date: Date, options?: Intl.DateTimeFormatOptions) {
@@ -550,8 +552,8 @@ export class I18n {
     date: Date,
     options: Intl.DateTimeFormatOptions,
   ): string {
-    const {defaultTimezone} = this;
-    const {timeZone = defaultTimezone} = options;
+    const { defaultTimezone } = this;
+    const { timeZone = defaultTimezone } = options;
 
     return this.translate('date.humanize.lessThanOneYearAway', {
       date: this.getDateFromDate(date, {
@@ -588,7 +590,7 @@ export class I18n {
     }
 
     if (isYesterday(date, timeZone)) {
-      return this.translate('date.humanize.yesterday', {time});
+      return this.translate('date.humanize.yesterday', { time });
     }
 
     if (isLessThanOneWeekAgo(date)) {
@@ -618,11 +620,11 @@ export class I18n {
     const time = this.getTimeFromDate(date, options);
 
     if (isToday(date, timeZone)) {
-      return this.translate('date.humanize.today', {time});
+      return this.translate('date.humanize.today', { time });
     }
 
     if (isTomorrow(date, timeZone)) {
-      return this.translate('date.humanize.tomorrow', {time});
+      return this.translate('date.humanize.tomorrow', { time });
     }
 
     if (isLessThanOneWeekAway(date)) {
@@ -651,7 +653,7 @@ export class I18n {
     date: Date,
     options?: Intl.DateTimeFormatOptions,
   ): string {
-    const {localeMatcher, formatMatcher, timeZone} = options || {};
+    const { localeMatcher, formatMatcher, timeZone } = options || {};
 
     const hourZone = this.formatDate(date, {
       localeMatcher,
@@ -696,7 +698,7 @@ export class I18n {
   }
 
   private getTimeFromDate(date: Date, options?: Intl.DateTimeFormatOptions) {
-    const {localeMatcher, formatMatcher, hour12, timeZone, timeZoneName} =
+    const { localeMatcher, formatMatcher, hour12, timeZone, timeZoneName } =
       options || {};
 
     const formattedTime = this.formatDate(date, {
@@ -718,7 +720,7 @@ export class I18n {
   }
 
   private getWeekdayFromDate(date: Date, options?: Intl.DateTimeFormatOptions) {
-    const {localeMatcher, formatMatcher, hour12, timeZone} = options || {};
+    const { localeMatcher, formatMatcher, hour12, timeZone } = options || {};
     return this.formatDate(date, {
       localeMatcher,
       formatMatcher,
@@ -732,7 +734,7 @@ export class I18n {
     date: Date,
     options?: Intl.DateTimeFormatOptions,
   ) {
-    const {localeMatcher, formatMatcher, hour12, timeZone} = options || {};
+    const { localeMatcher, formatMatcher, hour12, timeZone } = options || {};
     return this.formatDate(date, {
       localeMatcher,
       formatMatcher,
